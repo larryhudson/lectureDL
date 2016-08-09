@@ -20,8 +20,7 @@ Note: I'd recommend hiding subjects that are not active this semester because th
 * For each lecture, builds filename based on subject number and date and downloads
 
 ## Features:
-* Assigns week numbers based on date - formatted eg. "LING30001 Week 1 Lecture 2.m4a"
-* Support for subjects with single or multiple lectures per week
+* Assigns week numbers based on date and appends lecture numbers if there are more than one lecture per week - formatted eg. "LING30001 Week 1 Lecture 2.m4v"
 * Skips if file already exists
 * Can download either video files or audio files
 * Allows user to choose specific subjects and to only download lectures for specific weeks
