@@ -357,14 +357,6 @@ for subj in user_subjects:
 		dl_link = driver.find_element_by_partial_link_text("Download media file.").get_attribute("href")
 		# send javascript to stop download redirect
 		driver.execute_script('stopCounting=true') 
-			
-		# add file extension and build full download path
-			
-		 # check if file already exists
-		if os.path.isfile(link[6]):
-			print("File already exists. Skipping!")
-			skipped_lectures.append(link)
-			continue
 		
 		# download file using urllib.request.urlretrieve
 		print("Downloading to ", link[6])
