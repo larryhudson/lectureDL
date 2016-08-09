@@ -25,6 +25,7 @@ import datetime
 from datetime import timedelta
 import urllib
 import os.path
+from os.path import expanduser
 
 # define function to find a link and return the one it finds
 # works by making a list of the elements and sorts by descending list length,
@@ -40,6 +41,16 @@ def search_link_text(parent, string_list):
 	else:
 		return sorted_list[0][0]
 
+# setup download folders
+home_dir = expanduser("~")
+video_folder = os.path.join(home_dir, "Downloads/lectureDL/Lecture videos")
+audio_folder = os.path.join(home_dir, "Downloads/lectureDL/Lecture audio")
+
+# if they don't exist, make them
+if not os.path.exists(video_folder):
+	os.makedirs(video_folder)
+if not os.path.exists(audio_folder):
+	os.makedirs(audio_folder)
 
 # build week number dictionary
 current_date = datetime.datetime(2016, 7, 25)
@@ -301,10 +312,10 @@ for subj in user_subjects:
 			filename = filename + " " + str(item[3])
 		if download_mode == "audio":
 			filename_with_ext = filename + ".mp3"
-			file_path = os.path.join("/Users/larryhudson/Downloads/Lecture audio", filename_with_ext)
+			file_path = os.path.join(audio_folder, filename_with_ext)
 		else:
 			filename_with_ext = filename + ".m4v"
-			file_path = os.path.join("/Users/larryhudson/Downloads/Lecture videos", filename_with_ext)
+			file_path = os.path.join(video_folder, filename_with_ext)
 		item.append(filename)
 		item.append(file_path)
 		
