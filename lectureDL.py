@@ -143,7 +143,7 @@ while user_dates_input == "default":
 
 # startup chrome instance
 print("Starting up Chrome instance")
-driver = webdriver.Chrome("/Applications/chromedriver")
+driver = webdriver.Chrome("chromedriver")
 
 # login process
 print("Starting login process")
