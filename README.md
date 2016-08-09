@@ -1,10 +1,13 @@
 # lectureDL
 ## Setup:
 lectureDL is written in [Python 3](http://python.org/downloads) and uses the [Selenium library](http://selenium-python.readthedocs.io) coupled with [ChromeDriver](https://sites.google.com/a/chromium.org/chromedriver/).
+
 The easiest way to install selenium is with pip:
 	`pip3 install selenium`
+
 To run lectureDL, download the zip file for this repository and execute the script with Python 3 from inside the directory:
 	`python3 lectureDL.py`
+
 
 ## What it does:
 * Logs in to Unimelb LMS system
