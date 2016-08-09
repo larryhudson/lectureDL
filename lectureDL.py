@@ -73,10 +73,9 @@ while week_counter < 13:
  				
 # set defaults until user changes them
 download_mode = "default"
-user_dates_input = "default"
 skipped_lectures = []
 downloaded_lectures = []
-
+dates_list = []
 print("Welcome to lectureDL.py")
 
 # set download mode
@@ -92,54 +91,76 @@ while download_mode == "default":
 	else:
 		print("That wasn't an option.")
 
-# old functionality
-# specify specific subjects, or download all videos		
-# while user_subjects == "default":
-# 	print("Enter subject codes separated by ', ' or leave blank to download all")
-# 	user_subjects_input = input("> ")
-# 	if not user_subjects_input == "":
-# 		user_subjects = user_subjects_input.split(', ')
-# 	else:
-# 		user_subjects = []
 
-user_dates_input
-# if user enters comma-separated weeks, make a list for each and then concatenate
 print("Would you like to download lectures from specific weeks or since a particular date?")
-while user_dates_input == "default":
+while dates_list == []:
+	valid_input = True
+	
 	print("Enter a range of weeks (eg. 1-5 or 1,3,4) or a date (DD/MM/2016) to download videos that have since been released.")
 	user_dates_input = input("> ")
-	dates_list = []
+	
+	# if left blank, download all videos
 	if user_dates_input == "":
-		# if left blank, download all videos
 		dates_list = [start_week0 + datetime.timedelta(n) for n in range(int((datetime.datetime.today() - start_week0).days))]
+		
+	# if user enters comma-separated weeks, or just one, make a list for each and then concatenate
 	elif "," in user_dates_input or user_dates_input.isdigit():
-		# if user enters comma-separated weeks, or just one, make a list for each and then concatenate
-		print("Lectures will be downloaded for: ")
 		chosen_weeks = user_dates_input.replace(" ", "").split(",")
+		
+		# validate to see if weeks are ints between 1 and 12 inclusive
+		for item in chosen_weeks:
+			if int(item) < 1 or int(item) > 12 or not item.isdigit():
+				print("Invalid input. Weeks must be integers between 1 and 12 inclusive.")
+				valid_input = False
+		
+		# build date lists for each week and then concatenate
+		print("Lectures will be downloaded for: ")
 		for item in chosen_weeks:
 			start_date = start_week0 + (int(item) * week_delta)
 			end_date = end_week0 + (int(item) * week_delta)
 			dates_in_week = [start_date + datetime.timedelta(n) for n in range(int((end_date - start_date).days))]
-			dates_list += dates_in_week
-			print("Week ", item)
+			if valid_input:
+				dates_list += dates_in_week
+				print("Week ", item)
+	
+	# entering a week range or a start date both generate a range between start and end
 	elif "-" in user_dates_input or "/" in user_dates_input:
-		# create a table of dates between start date and end date 
+	
+		# validate to see if weeks are ints between 1 and 12 inclusive
 		if "-" in user_dates_input:
-			# splits the start and the end weeks
 			chosen_weeks = user_dates_input.split("-")
-			start_week = chosen_weeks[0]
-			end_week = chosen_weeks[1]
-			start_date = start_week0 + (int(start_week) * week_delta)
-			end_date = end_week0 + (int(end_week) * week_delta)
+			for item in chosen_weeks:
+				if int(item) < 1 or int(item) > 12 or not item.isdigit():
+					print("Invalid input. Weeks must be integers between 1 and 12 inclusive.")
+					valid_input = False
+			
+			# validate to check if end week comes after first week
+			if chosen_weeks[1] > chosen_weeks[0]:
+				start_week = chosen_weeks[0]
+				end_week = chosen_weeks[1]
+				start_date = start_week0 + (int(start_week) * week_delta)
+				end_date = end_week0 + (int(end_week) * week_delta)
+				if valid_input:
+					dates_list = [start_date + datetime.timedelta(n) for n in range(int((end_date - start_date).days))]
+			else:
+				print("Invalid input. The second week must come after the first week.")
+		
 		elif "/" in user_dates_input:
-			# create a range between start_date and today
-			start_date = datetime.datetime.strptime(user_dates_input, "%d/%m/%Y")
-			end_date = datetime.datetime.today()
-		dates_list = [start_date + datetime.timedelta(n) for n in range(int((end_date - start_date).days))]
-		print("Lectures will be downloaded for the dates between " + datetime.datetime.strftime(start_date, "%d %B")
-		 + " and " + datetime.datetime.strftime(end_date, "%d %B"))
+			# if in DD/MM/YYYY format, create a range between start_date and today
+			try:
+				start_date = datetime.datetime.strptime(user_dates_input, "%d/%m/%Y")
+				end_date = datetime.datetime.today() + day_delta
+				dates_list = [start_date + datetime.timedelta(n) for n in range(int((end_date - start_date).days))]
+			except ValueError:
+				print("Invalid input. Enter string in the format DD/MM/YYYY.")
+				
+		# if list has been appended, print range		
+		if not dates_list == []:
+			print("Lectures will be downloaded for the dates between " + datetime.datetime.strftime(dates_list[0], "%d %B") + " and " + datetime.datetime.strftime(dates_list[-1], "%d %B"))
+	
+	# catch-all for anything else
 	else:
-		print("That wasn't an option")
+		print("Invalid input")
 
 # startup chrome instance
 print("Starting up Chrome instance")
