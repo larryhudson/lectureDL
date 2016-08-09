@@ -143,7 +143,7 @@ while user_dates_input == "default":
 
 # startup chrome instance
 print("Starting up Chrome instance")
-driver = webdriver.Chrome("chromedriver")
+driver = webdriver.Chrome("ChromeDriver/chromedriver")
 
 # login process
 print("Starting login process")
@@ -266,9 +266,8 @@ for subj in user_subjects:
 	
 	# print status
 	print("Building list of lectures")
-	scroll_wrapper = driver.find_elements
-	driver.execute_script("window.scrollTo(0, document.body.scrollHeight);")
-	div.echoes-scroll-wrapper
+	# scroll_wrapper = driver.find_elements
+	# driver.execute_script("window.scrollTo(0, document.body.scrollHeight);")
 	# for each li element, build up filename info and add to download list
 	for item in recs_list:
 		# click on each recording to get different download links
