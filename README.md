@@ -9,7 +9,7 @@ To run lectureDL, download the zip file for this repository and execute the scri
 	`python3 lectureDL.py`
 
 Note: I'd recommend hiding subjects that are not active this semester because the script may try to find lecture recordings for past semesters.
-![Subject list](https://github.com/larryhudson/lectureDL/subj_list_screenshot "Click on the gear to hide subjects")
+![Subject list](https://github.com/larryhudson/lectureDL/subj_list_screenshot.png "Click on the gear to hide subjects")
 
 ## What it does:
 * Logs in to Unimelb LMS system
