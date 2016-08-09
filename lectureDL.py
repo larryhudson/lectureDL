@@ -1,22 +1,4 @@
 #!/usr/bin/env python3
-# lectureDL.py by Larry Hudson
-# Python script to download all lecture files, either video or audio
-# What it does:
-	# Logs in to Unimelb LMS system
-	# Builds list of subjects
-	# For each subject, navigate through to echo system
-	# Builds list of lectures
-	# For each lecture, builds filename based on subject number and date and downloads
-# Features:
-	# Assigns week numbers based on date - formatted eg. "LING30001 Week 1 Lecture 2.m4a"
-	# Support for subjects with single or multiple lectures per week
-	# Skips if file already exists
-	# Can download either video files or audio files
-	# Allows user to choose specific subjects and to only download lectures newer than a specific date
-# To do list:
-	# Allow user to choose download folder
-	# Replace list system (eg. to_download) with class and attributes?
-	# Change Week numbering from Week 1 to Week 01 (yeah yeah) - best boy Astrid xox
 
 from selenium import webdriver
 from selenium.webdriver.common.keys import Keys
