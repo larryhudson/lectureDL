@@ -8,6 +8,8 @@ The easiest way to install selenium is with pip:
 To run lectureDL, download the zip file for this repository and execute the script with Python 3 from inside the directory:
 	`python3 lectureDL.py`
 
+Note: I'd recommend hiding subjects that are not active this semester because the script may try to find lecture recordings for past semesters.
+[[https://github.com/larryhudson/lectureDL/subj_list_screenshot|alt=subject_list]]
 
 ## What it does:
 * Logs in to Unimelb LMS system
