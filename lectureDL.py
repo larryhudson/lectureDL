@@ -2,6 +2,9 @@
 
 from selenium import webdriver
 from selenium.webdriver.common.keys import Keys
+from selenium.webdriver.support.ui import WebDriverWait
+from selenium.webdriver.common.by import By
+from selenium.webdriver.support import expected_conditions as EC
 import time
 import datetime
 from datetime import timedelta
@@ -12,6 +15,7 @@ import argparse
 import configparser
 from sys import argv
 import getpass
+
 
 # define function to find a link and return the one it finds
 # works by making a list of the elements and sorts by descending list length,
@@ -54,13 +58,7 @@ def get_subj_name(string):
 # main function
 def main():
 	
-	# setup config file. if it exists, load it
-	config = configparser.ConfigParser()
-	if os.path.isfile('lectureDL.ini'):
-		config.read('lectureDL.ini')
-	# if it doesn't exist, initialise default settings
-	else:
-		config['DEFAULT'] = {'download_path': 'Downloads/lectureDL', 'username': 'default', 'password': 'default'}
+	
 	
 
 	# build week number dictionary
@@ -84,8 +82,9 @@ def main():
 				
 	# set defaults until user changes them
 	download_mode = "default"
-	default_path = config['DEFAULT']['download_path']
-	download_dir = os.path.join(expanduser("~"), default_path)
+	default_path = "Downloads/lectureDL"
+	home_dir = expanduser("~")
+	download_dir = os.path.join(home_dir, default_path)
 	skipped_lectures = []
 	downloaded_lectures = []
 	dates_list = []
@@ -106,21 +105,34 @@ def main():
 		if "-clearconfig" in argv:
 			if os.path.isfile('lectureDL.ini'):
 				# delete 'user' section
-				config.remove_section('user')
-				print("Cleared configuration file")
+				os.remove('lectureDL.ini')
+				print("Deleted configuration file")
+			else:
+				print("No configuration file found")
+	
+	# setup config file. if it exists, load it
+	config = configparser.ConfigParser()
+	if os.path.isfile('lectureDL.ini'):
+		config.read('lectureDL.ini')
+	
 	if len(argv) > 2:
 		if "-path" in argv:
 			path_input = argv[(argv.index("-path") + 1)]
-			chosen_path = os.path.join(expanduser("~"), path_input)
+			chosen_path = os.path.join(home_dir, path_input)
 			if not os.path.exists(chosen_path):
 				os.makedirs(chosen_path)
+			# find way to add properly
+			if not 'user' in config:
+				config.add_section('user')
 			config['user']['download_path'] = chosen_path
+			with open('lectureDL.ini', 'w') as configfile:
+				config.write(configfile)
 			print("Saved path", chosen_path, "to config file")
-
-	if 'download_path' in config['user']:
-		download_dir = config['user']['download_path']
+	if 'user' in config:
+		if 'download_path' in config['user']:
+			download_dir = config['user']['download_path']
+	
 	# setup download folders
-
 	video_folder = os.path.join(download_dir, "Lecture videos")
 	audio_folder = os.path.join(download_dir, "Lecture audio")
 
@@ -129,8 +141,7 @@ def main():
 		os.makedirs(video_folder)
 	if not os.path.exists(audio_folder):
 		os.makedirs(audio_folder)		
-			
-
+		
 	# set download mode
 	while download_mode == "default":
 		print("Enter 'v' to download videos or 'a' to download audio")
@@ -154,7 +165,7 @@ def main():
 
 			# if left blank, download all videos
 			if user_dates_input == "":
-				dates_list = [start_week0 + datetime.timedelta(n) for n in range(int((datetime.datetime.today() - start_week0).days))]
+				dates_list = [start_week0 + datetime.timedelta(n) for n in range(int((datetime.datetime.today() + day_delta - start_week0).days))]
 	
 			# if user enters comma-separated weeks, or just one, make a list for each and then concatenate
 			elif "," in user_dates_input or user_dates_input.isdigit():
@@ -226,30 +237,36 @@ def main():
 	driver.get("http://app.lms.unimelb.edu.au")
 	
 	# check config file for user settings, else ask for input
-	if "user" in config:
+	if "username" in config["user"] and "password" in config["user"]:
 		input_user = config["user"]["username"]
 		input_password = config["user"]["password"]
 	else:
 		input_user = input("Please enter your username: ")
 		input_password = getpass.getpass("Please enter your password: ")
+		ask_to_save = True
 	
 	# run login function with user and pass	
 	lms_login(driver, input_user, input_password)
-	time.sleep(5)
+	
 	
 	# offer to save user and pass in config file	
-	if not "user" in config:
+	if ask_to_save:
 		print("Would you like to save your username and password for next time? (y/n)")
 		save_choice = input("> ")
 		if save_choice == "y":
-			config["user"] = {"username": input_user,
-			                  "password": input_password}
+			if not 'user' in config:
+				config.add_section('user')
+			config["user"]['username'] = input_user
+			config["user"]['password'] = input_password
 			print("Saving config file.")
 			with open('lectureDL.ini', 'w') as configfile:
 				config.write(configfile)
 		else:
 			print("Credentials not saved.")
-
+	
+	wait_for_subjects = WebDriverWait(driver, 10).until(
+        EC.presence_of_element_located((By.CSS_SELECTOR, "ul.courseListing"))
+    )
 	# list items in list class "courseListing"
 	course_list = driver.find_element_by_css_selector("ul.courseListing")
 	# only get links with target="_top" to single out subject headings
@@ -339,13 +356,16 @@ def main():
 			recs_page2 = search_link_text(links_list, ["Recordings", "Capture", "recordings", "capture"])
 		
 			recs_page2.click()
-		time.sleep(4)
+		
+		driver.implicitly_wait(10)
 	
 		# now on main page. navigate through iframes
-		iframe = driver.find_elements_by_tag_name('iframe')[1]
+		iframe = driver.find_elements_by_css_selector('iframe#contentFrame')[0]
 		driver.switch_to_frame(iframe)
+		driver.implicitly_wait(10)
 		iframe2 = driver.find_elements_by_tag_name('iframe')[0]
 		driver.switch_to_frame(iframe2)
+		driver.implicitly_wait(10)
 		iframe3 = driver.find_elements_by_tag_name('iframe')[0]
 		driver.switch_to_frame(iframe3)
 	
@@ -368,7 +388,7 @@ def main():
 			date_div.click()
 			# scroll div so lectures are always in view
 			driver.execute_script("return arguments[0].scrollIntoView();", date_div)
-			time.sleep(2)
+			driver.implicitly_wait(2)
 		
 			# convert string into datetime.datetime object
 			# date is formatted like "August 02 3:20 PM" but I want "August 02 2016"
@@ -445,7 +465,7 @@ def main():
 			print("Now working on", link[5])
 			# go to initial download page and find actual download link
 			driver.get(link[0])
-			time.sleep(1)
+			driver.implicitly_wait(10)
 			dl_link = driver.find_element_by_partial_link_text("Download media file.").get_attribute("href")
 			# send javascript to stop download redirect
 			driver.execute_script('stopCounting=true') 
@@ -455,7 +475,7 @@ def main():
 			urllib.request.urlretrieve(dl_link, link[6])
 			print("Completed! Going to next file!")
 			downloaded_lectures.append(link)
-			time.sleep(2)
+			driver.implicitly_wait(10)
 			
 		# when finished with subject		
 		print("Finished downloading files for", subj[1])
