@@ -25,26 +25,24 @@ def search_link_text(parent, string_list):
 		return None
 	else:
 		return sorted_list[0][0]
+		
+def lms_login(parent, user, password):
+	user_field = parent.find_element_by_css_selector("input[name=user_id]")
+	user_field.send_keys(user)
+	pass_field = parent.find_element_by_css_selector("input[name=password]")
+	pass_field.send_keys(password)
+	pass_field.send_keys(Keys.RETURN)
 
 # main function
 def main():
 	
-	
-	# command line arguments
-# 	parser = argparse.ArgumentParser(description="lectureDL.py")
-# 	parser.add_argument('-dm', action="store", dest="download_mode", help="Set download mode")
-# 	parser.add_argument('-w', action="store", dest="user_dates_input", help="Set week range")
-# 	parser.add_argument('-all', action="store_true", default=False, dest="all_switch", help="Download all lectures")
-# 	parser.add_argument('-path', action="store", dest="user_path", help="Set download path")
-# 	parser.add_argument('-clearconfig', action="store_true", dest="clear_config_switch", help="Clear config file")
-# 	
-# 	results = parser.parse_args()
-
-	# sys.argv
-	# scenarios:
-	# -v (video mode), -a (audio mode) -all (download all) -path <path> (change DL folder), -clearconfig (to clear config file)
-	
-	print(argv)
+	# setup config file. if it exists, load it
+	config = configparser.ConfigParser()
+	if os.path.isfile('lectureDL.ini'):
+		config.read('lectureDL.ini')
+	# if it doesn't exist, initialise default settings
+	else:
+		config['DEFAULT'] = {'download_path': 'home_dir', 'username': 'default', 'password': 'default'}
 	
 	# setup download folders
 	home_dir = expanduser("~")
@@ -77,13 +75,14 @@ def main():
 		day_counter = 1
 				
 	# set defaults until user changes them
-	
 	download_mode = "default"
 	skipped_lectures = []
 	downloaded_lectures = []
 	dates_list = []
+	all_switch = False
 	print("Welcome to lectureDL.py")
 	
+	# simple command-line args
 	if len(argv) > 1:
 		if "-v" in argv:
 			download_mode = "video"
@@ -94,6 +93,11 @@ def main():
 		if "-all" in argv:
 			all_switch = True
 			print("-all argument passed. All lectures will be downloaded.")
+		if "-clearconfig" in argv:
+			if os.path.isfile('lectureDL.ini'):
+				# delete 'user' section
+				config.remove_section('user')
+				print("Cleared configuration file")
 
 	# set download mode
 	while download_mode == "default":
@@ -108,6 +112,7 @@ def main():
 		else:
 			print("That wasn't an option.")
 
+	# set date range for lecture downloads
 	if not all_switch:
 		print("Would you like to download lectures from specific weeks or since a particular date?")
 		while dates_list == []:
@@ -185,20 +190,34 @@ def main():
 	# startup chrome instance
 	print("Starting up Chrome instance")
 	driver = webdriver.Chrome("ChromeDriver/chromedriver")
-
-	# login process
 	print("Starting login process")
 	driver.get("http://app.lms.unimelb.edu.au")
-	user_field = driver.find_element_by_css_selector("input[name=user_id]")
-	input_user = input("Enter your username: ")
-	user_field.send_keys(input_user)
-	pass_field = driver.find_element_by_css_selector("input[name=password]")
-	input_pass = input("Enter your password: ")
-	pass_field.send_keys(input_pass)
-	# clear screen to hide password
-	print("\n" * 100)
-	pass_field.send_keys(Keys.RETURN)
+	
+	# check config file for user settings, else ask for input
+	if "user" in config:
+		input_user = config["user"]["username"]
+		input_password = config["user"]["password"]
+	else:
+		input_user = input("Please enter your username: ")
+		input_password = input("Please enter your password: ")
+		print("\n" * 100)
+	
+	# run login function with user and pass	
+	lms_login(driver, input_user, input_password)
 	time.sleep(5)
+	
+	# offer to save user and pass in config file	
+	if not "user" in config:
+		print("Would you like to save your username and password for next time? (y/n)")
+		save_choice = input("> ")
+		if save_choice == "y":
+			config["user"] = {"username": input_user,
+			                  "password": input_password}
+			print("Saving config file.")
+			with open('lectureDL.ini', 'w') as configfile:
+				config.write(configfile)
+		else:
+			print("Credentials not saved.")
 
 	# list items in list class "courseListing"
 	course_list = driver.find_element_by_css_selector("ul.courseListing")
@@ -229,34 +248,40 @@ def main():
 		subject_list.append([subj_code, subj_name, subj_link, subj_num])
 	
 		subj_num += 1
-
-	# print subjects to download
-	print("Subject list:")
-	for item in subject_list:
-		# print subject code: subject title
-		print(str(item[3]) +  ". " + item[0] + ": " + item[1])
+	if not all_switch:
+		# print subjects to download
+		print("Subject list:")
+		for item in subject_list:
+			# print subject code: subject title
+			print(str(item[3]) +  ". " + item[0] + ": " + item[1])
 
 	# create lists for subjects to be added to
 	user_subjects = []
 	skipped_subjects = []
+	
+	# only ask if all_switch is false
+	if not all_switch:
+		# choose subjects from list
+		print("Please enter subjects you would like to download (eg. 1,2,3) or leave blank to download all ")
+		user_choice = input("> ")
 
-	# choose subjects from list
-	print("Please enter subjects you would like to download (eg. 1,2,3) or leave blank to download all ")
-	user_choice = input("> ")
-
-	# for each chosen subj number, check if it is subj_num in subject list, if not skip it, if yes add it to subjects to be downloaded
-	if not user_choice == "":
-		chosen_subj_nums = user_choice.split(",")
-		for item in chosen_subj_nums:
-			for subj in subject_list:
-				if not item == str(subj[3]):
-					skipped_subjects.append(subj)
-				else:
-					user_subjects.append(subj)
+		# for each chosen subj number, check if it is subj_num in subject list, if not skip it, if yes add it to subjects to be downloaded
+		if not user_choice == "":
+			chosen_subj_nums = user_choice.split(",")
+			for item in chosen_subj_nums:
+				for subj in subject_list:
+					if not item == str(subj[3]):
+						skipped_subjects.append(subj)
+					else:
+						user_subjects.append(subj)
+		# if left blank, download all subjects
+		else:
+			user_subjects = subject_list
+	
+	# if all_switch is true
 	else:
-		for subj in subject_list:
-			user_subjects.append(subj)
-
+		user_subjects = subject_list
+		
 	print("Subjects to be downloaded:")
 	for item in user_subjects:
 		# print subject code: subject title
@@ -269,12 +294,14 @@ def main():
 	
 		# go to subject page and find Lecture Recordings page
 		driver.get(subj[2])
-		recs_page = search_link_text(driver, ["Recordings", "recordings", "Capture"])
+		recs_page = search_link_text(driver, ["Recordings", "Capture", "recordings", "capture"])
 	
 		# if no recordings page found, skip to next subject
 		if recs_page is None:
-			print("No recordings page found, skipping to next subject")
-			continue
+			print("No recordings page found, what is the name of the page?")
+			# search for something else? ask user to input page?
+			search_input = input("> ")
+			recs_page = search_link_text(driver, [search_input])
 	
 		recs_page.click()
 	
@@ -314,6 +341,8 @@ def main():
 			# click on each recording to get different download links
 			date_div = item.find_element_by_css_selector("div.echo-date")
 			date_div.click()
+			# scroll div so lectures are always in view
+			driver.execute_script("return arguments[0].scrollIntoView();", date_div)
 			time.sleep(2)
 		
 			# convert string into datetime.datetime object
@@ -428,7 +457,9 @@ def main():
 		for item in skipped_lectures:
 			print(item[5] + ": " + item[7])
 
-
+	print("Saving config file.")
+	with open('lectureDL.ini', 'w') as configfile:
+		config.write(configfile)
 			
 if __name__ == "__main__":
 	main()

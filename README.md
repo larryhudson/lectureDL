@@ -8,6 +8,13 @@ The easiest way to install selenium is with pip:
 To run lectureDL, download the zip file for this repository and execute the script with Python 3 from inside the directory:
 	`python3 lectureDL.py`
 
+lectureDL can be run with the following command-line arguments:
+* `-v` to download videos
+* `-a` to download audio
+* `-all` to download all lectures available
+*  `-clearconfig` to clear the config file (ie. forget user credentials)
+These commands can be combined, for example `python3 lectureDL.py -v -all` will download all lecture videos available. However, `-v -a` will not download both the video and the audio yet!
+
 Note: I'd recommend hiding subjects that are not active this semester because the script may try to find lecture recordings for past semesters.
 
 ![Subject list](img/subj_list_screenshot.png?raw=true "Click on the gear to hide subjects")
@@ -29,4 +36,3 @@ Note: I'd recommend hiding subjects that are not active this semester because th
 * Allow user to choose download folder
 * Replace list system (eg. to_download) with class and attributes?
 * Change Week numbering from Week 1 to Week 01 so they stay in order after Week 10
-* Scroll down JavaScript list of lecture recordings - otherwise might have 'element not visible' error when trying to click
