@@ -236,8 +236,10 @@ def main():
 	print("Starting login process")
 	driver.get("http://app.lms.unimelb.edu.au")
 	
+	ask_to_save = False
+	
 	# check config file for user settings, else ask for input
-	if "username" in config["user"] and "password" in config["user"]:
+	if "user" in config and "username" in config["user"] and "password" in config["user"]:
 		input_user = config["user"]["username"]
 		input_password = config["user"]["password"]
 	else:
