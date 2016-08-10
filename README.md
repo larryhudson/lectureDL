@@ -13,6 +13,7 @@ lectureDL can be run with the following command-line arguments:
 * `-a` to download audio
 * `-all` to download all lectures available
 *  `-clearconfig` to clear the config file (ie. forget user credentials)
+
 These commands can be combined, for example `python3 lectureDL.py -v -all` will download all lecture videos available. However, `-v -a` will not download both the video and the audio yet!
 
 Note: I'd recommend hiding subjects that are not active this semester because the script may try to find lecture recordings for past semesters.
