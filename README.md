@@ -12,6 +12,7 @@ lectureDL can be run with the following command-line arguments:
 * `-v` to download videos
 * `-a` to download audio
 * `-all` to download all lectures available
+* `-path <download directory>` to change download directory inside home folder (eg. on a Mac `python3 lectureDL.py -path "Lecture recordings"` will save videos inside `/Users/username/Lecture recordings`
 *  `-clearconfig` to clear the config file (ie. forget user credentials)
 
 These commands can be combined, for example `python3 lectureDL.py -v -all` will download all lecture videos available. However, `-v -a` will not download both the video and the audio yet!
