@@ -15,7 +15,7 @@ lectureDL can be run with the following command-line arguments:
 * `-path <download directory>` to change download directory inside home folder (eg. on a Mac `python3 lectureDL.py -path "Lecture recordings"` will save lectures inside `/Users/username/Lecture recordings`
 *  `-clearconfig` to clear the config file (ie. forget user credentials and reset download folder)
 
-These commands can be combined, for example `python3 lectureDL.py -v -all` will download all lecture videos available. However, `-v -a` will not download both the video and the audio yet!
+These commands can be combined, for example `python3 lectureDL.py -v -all` will download all lecture videos available, which is the fastest way of running the script if you have your credentials saved in the configuration file. However, `-v -a` will not download both the video and the audio yet!
 
 Note: I'd recommend hiding subjects that are not active this semester because the script may try to find lecture recordings for past semesters.
 
@@ -33,8 +33,4 @@ Note: I'd recommend hiding subjects that are not active this semester because th
 * Skips if file already exists
 * Can download either video files or audio files
 * Allows user to choose specific subjects and to only download lectures for specific weeks
-
-## To do list:
-* Allow user to choose download folder
-* Replace list system (eg. to_download) with class and attributes?
-* Change Week numbering from Week 1 to Week 01 so they stay in order after Week 10
+* Can save username and password in configuration file, if the user wants
