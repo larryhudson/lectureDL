@@ -1,6 +1,6 @@
 # lectureDL
 ## Setup:
-lectureDL is written in [Python 3](http://python.org/downloads) and uses the [Selenium library](http://selenium-python.readthedocs.io) coupled with [ChromeDriver](https://sites.google.com/a/chromium.org/chromedriver/).
+lectureDL is written in [Python 3](http://python.org/downloads) and uses the [Selenium library](http://selenium-python.readthedocs.io) coupled with [ChromeDriver](https://sites.google.com/a/chromium.org/chromedriver/). Note: lectureDL is setup to run on Mac, and will need a little bit of work before it reliably runs on Windows.
 
 The easiest way to install selenium is with pip:
 	`pip3 install selenium`
