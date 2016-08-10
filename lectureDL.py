@@ -60,18 +60,8 @@ def main():
 		config.read('lectureDL.ini')
 	# if it doesn't exist, initialise default settings
 	else:
-		config['DEFAULT'] = {'download_path': 'home_dir', 'username': 'default', 'password': 'default'}
+		config['DEFAULT'] = {'download_path': 'Downloads/lectureDL', 'username': 'default', 'password': 'default'}
 	
-	# setup download folders
-	home_dir = expanduser("~")
-	video_folder = os.path.join(home_dir, "Downloads/lectureDL/Lecture videos")
-	audio_folder = os.path.join(home_dir, "Downloads/lectureDL/Lecture audio")
-
-	# if they don't exist, make them
-	if not os.path.exists(video_folder):
-		os.makedirs(video_folder)
-	if not os.path.exists(audio_folder):
-		os.makedirs(audio_folder)
 
 	# build week number dictionary
 	current_date = datetime.datetime(2016, 7, 25)
@@ -94,6 +84,8 @@ def main():
 				
 	# set defaults until user changes them
 	download_mode = "default"
+	default_path = config['DEFAULT']['download_path']
+	download_dir = os.path.join(expanduser("~"), default_path)
 	skipped_lectures = []
 	downloaded_lectures = []
 	dates_list = []
@@ -116,6 +108,28 @@ def main():
 				# delete 'user' section
 				config.remove_section('user')
 				print("Cleared configuration file")
+	if len(argv) > 2:
+		if "-path" in argv:
+			path_input = argv[(argv.index("-path") + 1)]
+			chosen_path = os.path.join(expanduser("~"), path_input)
+			if not os.path.exists(chosen_path):
+				os.makedirs(chosen_path)
+			config['user']['download_path'] = chosen_path
+			print("Saved path", chosen_path, "to config file")
+
+	if 'download_path' in config['user']:
+		download_dir = config['user']['download_path']
+	# setup download folders
+
+	video_folder = os.path.join(download_dir, "Lecture videos")
+	audio_folder = os.path.join(download_dir, "Lecture audio")
+
+	# if they don't exist, make them
+	if not os.path.exists(video_folder):
+		os.makedirs(video_folder)
+	if not os.path.exists(audio_folder):
+		os.makedirs(audio_folder)		
+			
 
 	# set download mode
 	while download_mode == "default":
