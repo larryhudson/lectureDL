@@ -11,6 +11,7 @@ from os.path import expanduser
 import argparse
 import configparser
 from sys import argv
+import getpass
 
 # define function to find a link and return the one it finds
 # works by making a list of the elements and sorts by descending list length,
@@ -32,6 +33,23 @@ def lms_login(parent, user, password):
 	pass_field = parent.find_element_by_css_selector("input[name=password]")
 	pass_field.send_keys(password)
 	pass_field.send_keys(Keys.RETURN)
+
+def get_subj_code(string):
+	# string such as "LING30001_2016_SM2: Exploring Linguistic Diversity" is passed in 
+	# split at ": " to separate subj_code and subj_name
+	middle_split = string.split(": ")
+	# subj_code == LING30001_2016_SM2, split at "_", string[0]
+	subj_code = middle_split[0].split("_")[0]
+	return subj_code
+	
+
+def get_subj_name(string):
+	# string such as "LING30001_2016_SM2: Exploring Linguistic Diversity" is passed in 
+	# split at ": " to separate subj_code and subj_name
+	middle_split = string.split(": ")
+	subj_name = ": ".join(middle_split[1:])
+	return subj_name
+	
 
 # main function
 def main():
@@ -199,8 +217,7 @@ def main():
 		input_password = config["user"]["password"]
 	else:
 		input_user = input("Please enter your username: ")
-		input_password = input("Please enter your password: ")
-		print("\n" * 100)
+		input_password = getpass.getpass("Please enter your password: ")
 	
 	# run login function with user and pass	
 	lms_login(driver, input_user, input_password)
@@ -233,50 +250,46 @@ def main():
 	for link in course_links:
 		# get title eg "LING30001_2016_SM2: Exploring Linguistic Diversity"
 		full_string = link.text
-		# split at ": " to separate subj_code and subj_name
-		middle_split = full_string.split(": ")
-		# subj_code == LING30001_2016_SM2, split at "_", string[0]
-		subj_code = middle_split[0].split("_")[0]
-		# subj_name == Exploring Linguistic Diversity, string[1]
-		# join/split method is to account for subjects such as "International Relations: Key Questions"
-		subj_name = ": ".join(middle_split[1:])
+		# call functions to get code and name
+		subj_code = get_subj_code(full_string)
+		subj_name = get_subj_name(full_string)
 		# get subject link
 		subj_link = link.get_attribute("href")
-	
 		# set default for checking against user-specified subjects
 		skip_subj = False
 		subject_list.append([subj_code, subj_name, subj_link, subj_num])
-	
+		# add one to subj_num counter
 		subj_num += 1
+	
+	# create lists for subjects to download and skip
+	user_subjects = []
+	skipped_subjects = []
+	
 	if not all_switch:
-		# print subjects to download
+		# print subjects to choose from
 		print("Subject list:")
 		for item in subject_list:
 			# print subject code: subject title
 			print(str(item[3]) +  ". " + item[0] + ": " + item[1])
 
-	# create lists for subjects to be added to
-	user_subjects = []
-	skipped_subjects = []
-	
-	# only ask if all_switch is false
-	if not all_switch:
-		# choose subjects from list
-		print("Please enter subjects you would like to download (eg. 1,2,3) or leave blank to download all ")
-		user_choice = input("> ")
-
-		# for each chosen subj number, check if it is subj_num in subject list, if not skip it, if yes add it to subjects to be downloaded
-		if not user_choice == "":
-			chosen_subj_nums = user_choice.split(",")
-			for item in chosen_subj_nums:
-				for subj in subject_list:
-					if not item == str(subj[3]):
-						skipped_subjects.append(subj)
-					else:
-						user_subjects.append(subj)
-		# if left blank, download all subjects
-		else:
-			user_subjects = subject_list
+		# choose from subjects to download
+		while user_subjects == []:
+			print("Please enter subjects you would like to download (eg. 1,2,3) or leave blank to download all ")
+			user_choice = input("> ")
+			if not user_choice == "":
+				chosen_subj_nums = user_choice.split(",")
+				for item in chosen_subj_nums:
+					# validate to check if numbers are between 1 and however big the list is
+					if int(item) < 1 or int(item) > len(subject_list) or not item.isdigit():
+						print("Invalid input. Subject numbers must be between 1 and", str(len(subject_list)), "inclusive.")
+					for subj in subject_list:
+						if not int(item) == subj[3]:
+							skipped_subjects.append(subj)
+						else:
+							user_subjects.append(subj)
+			# if left blank, download all subjects
+			else:
+				user_subjects = subject_list
 	
 	# if all_switch is true
 	else:
@@ -298,8 +311,8 @@ def main():
 	
 		# if no recordings page found, skip to next subject
 		if recs_page is None:
-			print("No recordings page found, what is the name of the page?")
-			# search for something else? ask user to input page?
+			print("No recordings page found, can you find the name of the page?")
+			# search for something else? ask user to input page
 			search_input = input("> ")
 			recs_page = search_link_text(driver, [search_input])
 	
@@ -334,8 +347,6 @@ def main():
 	
 		# print status
 		print("Building list of lectures")
-		# scroll_wrapper = driver.find_elements
-		# driver.execute_script("window.scrollTo(0, document.body.scrollHeight);")
 		# for each li element, build up filename info and add to download list
 		for item in recs_list:
 			# click on each recording to get different download links
