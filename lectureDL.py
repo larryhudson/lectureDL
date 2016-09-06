@@ -15,6 +15,7 @@ import configparser
 from sys import argv
 import getpass
 from collections import namedtuple
+import platform
 
 
 def search_link_text(parent, string_list):
@@ -155,8 +156,8 @@ def main():
 
     # set date range for lecture downloads
     if not all_switch:
-        print('Would you like to download lectures from \
-        specific weeks or since a particular date?')
+        print('Would you like to download lectures from'
+              + 'specific weeks or since a particular date?')
         while dates_list == []:
             valid_input = True
             print('Enter a range of weeks (eg. 1-5 or 1,3,4)'
@@ -262,7 +263,13 @@ def main():
 
     # startup chrome instance
     print('Starting up Chrome instance')
-    driver = webdriver.Chrome('ChromeDriver/linux/chromedriver')
+    operating_system = platform.system()
+    driver_dict = {
+        'Linux': 'ChromeDriver/chromedriver-linux',
+        'Windows': 'ChromeDriver/chromedriver-win.exe',
+        'Darwin': 'ChromeDriver/chromedriver-mac',
+    }
+    driver = webdriver.Chrome(driver_dict[operating_system])
     print('Starting login process')
     driver.get('http://app.lms.unimelb.edu.au')
 
