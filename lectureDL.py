@@ -64,6 +64,8 @@ def main():
     current_date = datetime.datetime(2016, 7, 25)
     start_week0 = datetime.datetime(2016, 7, 18)
     end_week0 = datetime.datetime(2016, 7, 24)
+    start_midsem = datetime.datetime(2016, 9, 26)
+    end_midsem = datetime.datetime(2016, 10, 2)
     day_delta = timedelta(days=1)
     week_delta = timedelta(days=7)
     week_counter = 1
@@ -76,7 +78,9 @@ def main():
             week_day[current_date] = week_counter
             day_counter += 1
             current_date = current_date + day_delta
-        week_counter += 1
+            # doesn't +1 if in midsem break
+            if not start_midsem <= current_date <= end_midsem:
+                week_counter += 1
         day_counter = 1
 
     # set defaults until user changes them
