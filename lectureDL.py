@@ -79,8 +79,8 @@ def main():
             day_counter += 1
             current_date = current_date + day_delta
             # doesn't +1 if in midsem break
-            if not start_midsem <= current_date <= end_midsem:
-                week_counter += 1
+        if not start_midsem <= current_date <= end_midsem:
+            week_counter += 1
         day_counter = 1
 
     # set defaults until user changes them
